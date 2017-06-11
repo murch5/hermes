@@ -1,8 +1,9 @@
 from distutils.core import setup
+from io_util.__init__ import __version__ as version
 
 setup(
     name='io_util',
-    version='0.1.0',
+    version=version,
     packages=['io_util'],
     url='',
     license='',
