@@ -3,7 +3,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 def parse_val(value,type):
 
     if value is not None:
@@ -13,7 +12,11 @@ def parse_val(value,type):
         elif type in ["float", "f"]:
             out = float(value)
         elif type in ["bool", "b"]:
-            out = bool(value)
+            if value in ["False","F","FALSE"]:
+                out=False
+            else:
+                out = bool(value)
+
         elif type in ["str", "s"]:
             out = str(value)
         elif type in ["tuple_int", "ti"]:
