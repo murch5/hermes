@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as et
 import logging
+from xmljson import cobra
+import json as json
 
 logger = logging.getLogger(__name__)
 
@@ -60,4 +62,26 @@ def xml_to_dict(xml):
         return accum
 
     return internal_iter(xml, {})
+
+def xml_to_json(xml):
+
+    json_data = cobra.data(xml)
+
+    json_data = json.dumps(json_data)
+
+    print(json_data)
+    return json_data
+
+def dict_to_json(dict):
+    print(dict)
+    print(json.dumps(dict))
+    return json.dumps(dict)
+
+def json_to_xml(json_data):
+
+    xml = cobra.etree(json_data)
+
+    print(xml)
+    return xml
+
 
