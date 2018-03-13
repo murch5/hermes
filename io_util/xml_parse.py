@@ -6,6 +6,10 @@ import json as json
 
 logger = logging.getLogger(__name__)
 
+
+def print_xml(xml):
+    return print(et.dump(xml))
+
 def parse_val(value,type):
 
     if value is not None:
@@ -94,14 +98,14 @@ def xml_to_dict(xml):
 
     return internal_iter(xml, {})
 
-def dict_to_xml(dict_data):
+def dict_to_xml(dict_data, root_name = "root"):
 
 
-    new_root = et.Element("root")
+    new_root = et.Element(root_name)
     new_tree = et.ElementTree(new_root)
 
     def internal_iter(dict_data,parent):
-
+        print(dict_data)
         for key, item in dict_data.items():
 
             if isinstance(item,dict):
