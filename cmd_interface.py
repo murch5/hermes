@@ -1,6 +1,9 @@
 # Imports
-import argparse
+
 import logging, logging.config
+
+import argparse
+
 import inspect
 import yaml
 import io
@@ -8,7 +11,6 @@ import os
 import sys
 import socket
 import platform
-
 
 # Load base logging information
 PACKAGE_PATH = os.path.split(os.path.realpath(__file__))[0]
@@ -19,6 +21,9 @@ logging.config.dictConfig(log_config)
 
 logger = logging.getLogger(__name__)
 logging.Formatter.default_msec_format = '%s.%03d'
+
+logging.disable(logging.INFO)
+
 
 
 class CmdInterface:
@@ -34,7 +39,6 @@ class CmdInterface:
         with io.open(settings_path, "r") as settings_yml:
             try:
                 settings_dict = yaml.safe_load(settings_yml)
-                logger.debug("Loaded command interface settings")
             except:
                 logger.error("Command interface settings failed to load from file: " + settings_path)
 
@@ -42,36 +46,57 @@ class CmdInterface:
 
     def create_arg_parser(self):
 
-        logger.debug("Creating argument parser")
+
         parser = argparse.ArgumentParser(prog=self.settings.get("prog"),
                                          description=self.settings.get("description"),
-                                         epilog=self.settings.get("epilog"))
+                                         epilog=self.settings.get("epilog"),
+                                         allow_abbrev=False)
 
         argument_settings_list = self.settings.get("arguments")
 
-        for argument in argument_settings_list:
-            parser.add_argument(argument.get("name"), dest=argument.get("dest"), nargs=argument.get("nargs"))
+        self.add_args(parser, argument_settings_list)
+
+        return parser
+
+    def add_args(self, parser, arg_list):
+
+        for argument in arg_list:
+            args = argument.get("name")
+            kwargs = argument
+            del kwargs["name"]
+
+            if isinstance(args, list):
+                parser.add_argument(*args, **kwargs)
+            else:
+                parser.add_argument(args, **kwargs)
 
         return parser
 
     def run(self, args):
 
         parsed_args = self.parse_args(args)
-        parsed_args_dict = vars(parsed_args)
+        self.parsed_args_dict = vars(parsed_args)
 
-        self.output_function_header()
+        self.process_common_args(**self.parsed_args_dict)
 
-        self.func(**parsed_args_dict)
+        if self.show_header:
+            self.output_function_header()
+
+        self.func(**self.parsed_args_dict)
 
         pass
 
     def __init__(self, func, settings_path):
 
-        logger.debug("Initializing command line interface class")
         self.func = func
         self.settings = self.load_script_settings(settings_path)
 
         self.arg_parser = self.create_arg_parser()
+        self.parsed_args_dict = {}
+        self.show_header = True
+
+        self.add_common_cmd_args()
+
         pass
 
     def output_function_header(self):
@@ -88,5 +113,30 @@ class CmdInterface:
         logger.info("**************************************************")
         logger.info("[host: " + host + ", version: Python " + py_version + "]")
         logger.info("[platform: " + str(plat) + "]")
+        logger.info("[args: " + str(self.parsed_args_dict) + "]")
+
+        pass
+
+    def add_common_cmd_args(self):
+
+        common_args = self.load_script_settings(os.path.split(__file__)[0] + "/settings.yml")
+
+        self.add_args(self.arg_parser, common_args.get("arguments"))
+
+        pass
+
+    def process_common_args(self, **kwargs):
+
+        silent_flag = kwargs.get("silent_flag")
+
+        if silent_flag:
+            logging.disable(logging.CRITICAL)
+            self.show_header = False
+        else:
+            logging.disable(logging.NOTSET)
+
+        if kwargs.get("hide_header"):
+            self.show_header = False
+
 
         pass

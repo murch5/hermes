@@ -30,6 +30,8 @@ def parse_val(value,type):
             out = tuple([int(x) for x in value.split(",")])
         elif type in ["list_int", "li"]:
             out = [int(x) for x in value.split(",")]
+        elif type in ["list_str", "ls"]:
+            out = [str(x) for x in value.split(",")]
         else:
             out = str(value)
     else:
